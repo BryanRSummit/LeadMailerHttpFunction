@@ -24,17 +24,25 @@ def handle_request():
     try:
         sheet = sheet_login()
 
+        # Get all values from the sheet
+        all_values = sheet.get_all_values()
+
         # Find the row with the matching lead_id
-        cell = sheet.find(lead_id)
-        if not cell:
+        row_index = None
+        for i, row in enumerate(all_values):
+            for cell in row:
+                if lead_id in cell:
+                    row_index = i
+                    break
+            if row_index is not None:
+                break
+
+        if row_index is None:
             return f'Lead ID {lead_id} not found', 404
 
-        headers = sheet.row_values(1)
-        row = cell.row
-        col = headers.index("No Interest") 
-
-        # Update the checkbox column
-        sheet.update_cell(row, col, 'TRUE')
+        # Update the 12th column (index 11 in zero-based indexing)
+        update_column = 12  # This is the 12th column
+        sheet.update_cell(row_index + 1, update_column, 'TRUE')  # +1 because sheet rows are 1-indexed
 
         return f'Updated checkbox for lead {lead_id}', 200
 
